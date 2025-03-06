@@ -55,5 +55,5 @@ pub unsafe extern "C" fn start_send_loop(data: *mut c_void, port: Dart_Port) -> 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn reclaim_vec_cb(_isolate_callback_data: *mut c_void, peer: *mut c_void) {
     println!("reclaim_cb {peer:p}");
-    // Box::from_raw(peer.cast::<Vec<u8>>());
+    Box::from_raw(peer.cast::<Vec<u8>>());
 }
