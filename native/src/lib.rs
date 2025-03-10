@@ -24,7 +24,7 @@ pub unsafe extern "C" fn start_send_loop(data: *mut c_void, port: Dart_Port) -> 
 
             let length = vec.len() as isize;
             let data = vec.as_mut_ptr();
-            let peer = Box::into_raw(vec.into_boxed_slice()) as *mut c_void;
+            let peer = Box::into_raw(Box::new(vec)) as *mut c_void;
 
             let mut msg = Dart_CObject {
                 type_: Dart_CObject_Type_Dart_CObject_kExternalTypedData,
