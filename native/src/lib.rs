@@ -1,10 +1,12 @@
+use std::{ffi::c_void, sync::Mutex, thread};
+
 use dart_sys::{
     _Dart_CObject__bindgen_ty_1, _Dart_CObject__bindgen_ty_1__bindgen_ty_5, Dart_CObject,
     Dart_CObject_Type_Dart_CObject_kExternalTypedData, Dart_InitializeApiDL, Dart_Port,
     Dart_PostCObject_DL, Dart_TypedData_Type_Dart_TypedData_kUint8,
 };
-use std::ffi::c_void;
-use std::thread;
+
+static IS_SHUTTING_DOWN: Mutex<bool> = Mutex::new(false);
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn start_send_loop(data: *mut c_void, port: Dart_Port) -> isize {
@@ -16,7 +18,7 @@ pub unsafe extern "C" fn start_send_loop(data: *mut c_void, port: Dart_Port) -> 
     thread::spawn(move || {
         let mut i = 0u64;
         loop {
-            thread::sleep(std::time::Duration::from_millis(10));
+            thread::sleep(std::time::Duration::from_millis(5));
             i += 1;
 
             let mut vec: Vec<u8> = i.to_be_bytes().to_vec();
@@ -39,6 +41,14 @@ pub unsafe extern "C" fn start_send_loop(data: *mut c_void, port: Dart_Port) -> 
                 },
             };
 
+            let is_shutting_down = IS_SHUTTING_DOWN.lock().unwrap();
+
+            if *is_shutting_down {
+                println!("dart is shutting down");
+                return;
+            }
+
+            println!("send {peer:p}");
             if !Dart_PostCObject_DL.unwrap()(port, &mut msg) {
                 println!("Dart_PostCObject_DL == false for {peer:p}, so cleaning from native code");
                 msg.value.as_external_typed_data.callback.as_ref().unwrap()(
@@ -56,4 +66,9 @@ pub unsafe extern "C" fn start_send_loop(data: *mut c_void, port: Dart_Port) -> 
 pub unsafe extern "C" fn reclaim_vec_cb(_isolate_callback_data: *mut c_void, peer: *mut c_void) {
     println!("reclaim_cb {peer:p}");
     Box::from_raw(peer.cast::<Vec<u8>>());
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn shutdown_callback(_: *mut c_void) {
+    *IS_SHUTTING_DOWN.lock().unwrap() = true;
 }

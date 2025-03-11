@@ -5,6 +5,17 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:io' show Platform;
 
+final class ShutdownWatcher implements Finalizable {
+  static var _finalizer;
+
+  ShutdownWatcher(Pointer<NativeFinalizerFunction> callback) {
+    _finalizer = NativeFinalizer(callback);
+    _finalizer.attach(this, Pointer.fromAddress(0));
+  }
+}
+
+ShutdownWatcher? shutdownWatcher;
+
 main() async {
   late final DynamicLibrary nativeLib;
 
@@ -16,12 +27,19 @@ main() async {
     throw "wat";
   }
 
+  shutdownWatcher = ShutdownWatcher(
+    nativeLib.lookup<NativeFinalizerFunction>('shutdown_callback'),
+  );
+
   var _wakePort = ReceivePort()..listen(_pollTask);
 
   var initResult = nativeLib.lookupFunction<
-      IntPtr Function(Pointer<Void>, Int64),
-      int Function(Pointer<Void>, int)>
-    ('start_send_loop')(NativeApi.initializeApiDLData, _wakePort.sendPort.nativePort);
+    IntPtr Function(Pointer<Void>, Int64),
+    int Function(Pointer<Void>, int)
+  >('start_send_loop')(
+    NativeApi.initializeApiDLData,
+    _wakePort.sendPort.nativePort,
+  );
 
   assert(initResult == 0);
 }

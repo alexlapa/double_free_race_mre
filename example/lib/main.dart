@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:double_free_race_mre/double_free_race_mre.dart' as double_free_race_mre;
+import 'package:double_free_race_mre/double_free_race_mre.dart'
+    as double_free_race_mre;
 
 void main() {
   runApp(const MyApp());
@@ -30,9 +31,7 @@ class _MyAppState extends State<MyApp> {
     const spacerSmall = SizedBox(height: 10);
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Native Packages'),
-        ),
+        appBar: AppBar(title: const Text('Native Packages')),
         body: SingleChildScrollView(
           child: Container(
             padding: const EdgeInsets.all(10),
