@@ -1,5 +1,8 @@
 # double_free_race_mre
 
+Issue: https://github.com/dart-lang/native/issues/2079
+Workaround: https://github.com/alexlapa/double_free_race_mre/compare/3aa1264b89c80611b7c0f75d5a47911404591d73...7a35a9ab9638f2bffe1b43f07354d0749853e662
+
 Only seems to be reproducible on MacOS, so: 
 1. `make run.macos`
 2. Close flutter application via close button (Ctrl+C wont proc segfault).
